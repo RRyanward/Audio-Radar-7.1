@@ -1,6 +1,6 @@
 Audio Radar Overlay 🎧🎯
 
-![Audio Radar Demo]([https://github.com/RRyanward/Audio-Radar-7.1/blob/main/media/example-2.gif])
+![Audio Radar Demo]([])
 
 > Real-time directional audio radar overlay for immersive gaming and sound detection.
 
@@ -32,7 +32,7 @@ Audio Radar Overlay 🎧🎯
 
 4. Use the tray icon to select your audio input device and adjust thresholds.
 
-![Lightbar Overlay Example](https://media.giphy.com/media/xT0GqzC9CMbc26eJ4w/giphy.gif)
+![Lightbar Overlay Example] https://github.com/RRyanward/Audio-Radar-7.1/blob/main/media/example-2.gif?raw=true
 
 Feel free to open issues or pull requests. Star ⭐ the repo if you find it useful!
 

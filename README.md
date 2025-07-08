@@ -32,6 +32,6 @@ Audio Radar Overlay 🎧🎯
 
 4. Use the tray icon to select your audio input device and adjust thresholds.
 
-Feel free to open issues or pull requests. Star ⭐ the repo if you find it useful!
+Feel free to pull requests. Star ⭐ the repo if you find it useful!
 
 Created by Ryan Ward (https://tafaricraft.com)

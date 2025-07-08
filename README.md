@@ -32,7 +32,7 @@ Audio Radar Overlay 🎧🎯
 
 4. Use the tray icon to select your audio input device and adjust thresholds.
 
-![Lightbar Overlay Example] https://github.com/RRyanward/Audio-Radar-7.1/blob/main/media/example-2.gif
+![Lightbar Overlay Example](https://github.com/RRyanward/Audio-Radar-7.1/blob/main/media/example-2.gif?raw=true)
 
 Feel free to open issues or pull requests. Star ⭐ the repo if you find it useful!
 

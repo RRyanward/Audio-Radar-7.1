@@ -1,58 +1,39 @@
-Audio Radar Overlay — How to Use
-Requirements
-Python 3.8 or higher
+Audio Radar Overlay 🎧🎯
 
-Dependencies: numpy, scipy, sounddevice, PyQt6
-Install via pip:
+![Audio Radar Demo](https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif)
 
-bash
-Copy
-Edit
-pip install numpy scipy sounddevice PyQt6
-Running from Source
-Clone or download this repository.
+> Real-time directional audio radar overlay for immersive gaming and sound detection.
 
-Make sure your audio input device supports 7.1 channel input (e.g., Voicemeeter 7.1 output).
+- 🎤 8-channel Dolby 7.1 audio input support  
+- 🎨 Dynamic lightbars with yellow-to-red color fade based on loudness and distance  
+- 🎛️ Adjustable thresholds and gain via GUI  
+- 🖥️ Full-screen transparent overlay with radar-style visualization  
+- 🔊 Bandpass filtering for footstep frequency range (400-2500 Hz)  
+- 💡 Animated fade-in/out effects for responsive visual feedback  
 
-Run the app with:
+1. Clone the repo:
 
-bash
-Copy
-Edit
-python "audio radar.py"
-On first launch, select your audio input device, adjust gain and thresholds, then click Apply.
+    ```bash
+    git clone https://github.com/yourusername/audio-radar.git
+    cd audio-radar
+    ```
 
-The overlay will appear fullscreen, showing directional audio lightbars indicating sound source locations.
+2. Install dependencies:
 
-Building an Executable
-To create a standalone Windows executable:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-Install PyInstaller (if you don’t have it):
+3. Run the overlay:
 
-bash
-Copy
-Edit
-pip install pyinstaller
-Run this command in your project folder:
+    ```bash
+    python audio_radar.py
+    ```
 
-bash
-Copy
-Edit
-pyinstaller --onefile --windowed --icon=tray_icon.ico "audio radar.py"
-After completion, the executable will be in the dist folder as audio radar.exe.
+4. Use the tray icon to select your audio input device and adjust thresholds.
 
-Run audio radar.exe to launch the overlay without needing Python installed.
+![Lightbar Overlay Example](https://media.giphy.com/media/xT0GqzC9CMbc26eJ4w/giphy.gif)
 
-Usage Tips
-Ensure your audio routing software (e.g., Voicemeeter) is set up to output discrete 7.1 channels to the selected input device.
+Feel free to open issues or pull requests. Star ⭐ the repo if you find it useful!
 
-Adjust Gain, Yellow Threshold, and Red Threshold sliders to fine-tune the overlay sensitivity and color transitions based on your in-game audio.
-
-The lightbars will color fade from yellow (medium loudness) to red (very loud) for immersive directional audio feedback.
-
-Troubleshooting
-If no lightbars appear, check your input device selection and audio routing configuration.
-
-Use the tray icon menu to toggle overlay visibility or change input device at any time.
-
-Let me know if you want me to format it in markdown or include badges, images, or GIFs for your GitHub!
+Created by Ryan Ward (https://tafaricraft.com)

@@ -1,6 +1,6 @@
 Audio Radar Overlay 🎧🎯
 
-![Audio-Radar-7.1](https://raw.githubusercontent.com/RRyanward/Audio-Radar-7.1/main/media/example-2.gif)
+![Example](https://raw.githubusercontent.com/RRyanward/Audio-Radar-7.1/main/media/example-2.gif)
 
 > Real-time directional audio radar overlay for immersive gaming and sound detection.
 

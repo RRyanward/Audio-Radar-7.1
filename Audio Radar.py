@@ -4,13 +4,16 @@ import os
 import numpy as np
 import sounddevice as sd
 from scipy.signal import butter, lfilter
-from PyQt6.QtWidgets import (QApplication, QWidget, QDialog, QComboBox, QPushButton,
-                             QHBoxLayout, QVBoxLayout, QLabel, QSystemTrayIcon, QMenu)
-from PyQt6.QtCore import Qt, QTimer, QRect
+from PyQt6.QtWidgets import (
+    QApplication, QWidget, QDialog, QComboBox, QPushButton,
+    QHBoxLayout, QVBoxLayout, QLabel, QSystemTrayIcon, QMenu,
+    QMessageBox
+)
+from PyQt6.QtCore import Qt, QTimer, QRect, QSharedMemory
 from PyQt6.QtGui import QPainter, QColor, QIcon, QAction
 
+# Safe path for PyInstaller
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
         base_path = sys._MEIPASS
     except Exception:
@@ -75,6 +78,7 @@ class DeviceSelectorPopup(QDialog):
     def apply_settings(self):
         if self.parent() is not None:
             self.parent().update_settings(device=self.get_selected_device())
+        self.accept()  # ✅ Auto-close after apply
 
 class AudioOverlay(QWidget):
     def __init__(self):
@@ -100,9 +104,8 @@ class AudioOverlay(QWidget):
         self.prev_levels = [[] for _ in range(8)]
         self.smoothing_window = 3
 
-        self.fade_duration = 1.0  # seconds
-        self.hold_time = 0.5      # seconds
-
+        self.fade_duration = 1.0
+        self.hold_time = 0.5
         self.GLOBAL_COOLDOWN = 0.5
         self.last_global_trigger = 0
 
@@ -132,7 +135,7 @@ class AudioOverlay(QWidget):
         self.tray_icon.show()
 
         self.device_popup = None
-        self.show_device_selector_popup()
+        QTimer.singleShot(500, self.show_device_selector_popup)
 
     def toggle_overlay(self):
         if self.isVisible():
@@ -145,6 +148,7 @@ class AudioOverlay(QWidget):
     def exit_app(self):
         if self.stream:
             self.stream.close()
+        self.tray_icon.hide()  # cleanup
         QApplication.quit()
 
     def show_device_selector_popup(self):
@@ -162,17 +166,20 @@ class AudioOverlay(QWidget):
             self.start_audio_stream(device)
 
     def start_audio_stream(self, device_index):
-        if self.stream:
-            self.stream.close()
-        self.stream = sd.InputStream(device=device_index, channels=8,
-                                     samplerate=self.fs, callback=self.audio_callback,
-                                     blocksize=1024)
-        self.stream.start()
+        try:
+            if self.stream:
+                self.stream.close()
+            time.sleep(0.3)
+            self.stream = sd.InputStream(device=device_index, channels=8,
+                                         samplerate=self.fs, callback=self.audio_callback,
+                                         blocksize=1024)
+            self.stream.start()
+        except Exception as e:
+            QMessageBox.critical(self, "Stream Error", f"Could not start audio stream:\n{str(e)}")
 
     def audio_callback(self, indata, frames, time_info, status):
         filtered = [bandpass_filter(indata[:, i], self.b, self.a) for i in range(8)]
         levels = [np.sqrt(np.mean(ch**2)) for ch in filtered]
-
         now = time.time()
 
         if now - self.last_global_trigger < self.GLOBAL_COOLDOWN:
@@ -190,12 +197,12 @@ class AudioOverlay(QWidget):
             if delta > 0.004 and delta > 2.0 * max_prev:
                 level = delta * 5
                 if level > 0.05:
-                    self.channel_colors[i] = QColor(255, 0, 0)  # red
+                    self.channel_colors[i] = QColor(255, 0, 0)
                     self.last_trigger_time[i] = now
                     self.last_global_trigger = now
                     break
                 elif level > 0.01:
-                    self.channel_colors[i] = QColor(255, 255, 0)  # yellow
+                    self.channel_colors[i] = QColor(255, 255, 0)
                     self.last_trigger_time[i] = now
                     self.last_global_trigger = now
                     break
@@ -206,19 +213,18 @@ class AudioOverlay(QWidget):
         vertical_bar_width = top_bar_height
 
         positions = [
-            QRect(0, 0, width // 4, top_bar_height),                      # FL
-            QRect(3 * width // 4, 0, width // 4, top_bar_height),         # FR
-            QRect(width // 3, 0, center_bar_width, top_bar_height),       # C
-            QRect(0, height - top_bar_height, width // 4, top_bar_height),          # RL
-            QRect(3 * width // 4, height - top_bar_height, width // 4, top_bar_height), # RR
-            QRect(0, height // 2 - center_bar_width // 2, vertical_bar_width, center_bar_width),         # SL
-            QRect(width - vertical_bar_width, height // 2 - center_bar_width // 2, vertical_bar_width, center_bar_width)  # SR
+            QRect(0, 0, width // 4, top_bar_height),
+            QRect(3 * width // 4, 0, width // 4, top_bar_height),
+            QRect(width // 3, 0, center_bar_width, top_bar_height),
+            QRect(0, height - top_bar_height, width // 4, top_bar_height),
+            QRect(3 * width // 4, height - top_bar_height, width // 4, top_bar_height),
+            QRect(0, height // 2 - center_bar_width // 2, vertical_bar_width, center_bar_width),
+            QRect(width - vertical_bar_width, height // 2 - center_bar_width // 2, vertical_bar_width, center_bar_width)
         ]
 
-        mapping_indices = [0, 1, 2, 4, 5, 6, 7]  # skip LFE
+        mapping_indices = [0, 1, 2, 4, 5, 6, 7]
 
         now = time.time()
-
         for i, ch_idx in enumerate(mapping_indices):
             color = self.channel_colors[ch_idx]
             triggered = self.last_trigger_time[ch_idx]
@@ -227,7 +233,6 @@ class AudioOverlay(QWidget):
 
             rect = positions[i]
             alpha = 255
-
             if now - triggered > self.hold_time:
                 fade_progress = (now - triggered - self.hold_time) / self.fade_duration
                 alpha = int(255 * (1 - min(fade_progress, 1.0)))
@@ -239,8 +244,28 @@ class AudioOverlay(QWidget):
         painter = QPainter(self)
         self.draw_lightbars(painter, self.width(), self.height())
 
+# ---- SINGLE INSTANCE ENFORCEMENT ----
+class SingleInstance:
+    def __init__(self, key):
+        self.key = key
+        self.memory = QSharedMemory(key)
+
+    def is_running(self):
+        if self.memory.attach():
+            self.memory.detach()
+            return True
+        if not self.memory.create(1):
+            return True
+        return False
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+
+    instance_checker = SingleInstance("AudioRadarInstanceLock")
+    if instance_checker.is_running():
+        QMessageBox.warning(None, "Already Running", "Audio Radar is already running.")
+        sys.exit(0)
+
     overlay = AudioOverlay()
     overlay.showFullScreen()
     sys.exit(app.exec())
